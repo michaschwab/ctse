@@ -1,9 +1,10 @@
-var eachTimelineWaitTimeInMs = 1;
+var loadTimeInMs = 50;
+var renderTimeInMs = 10;
 
 var timelineHeight = 110;
 var numberTimelines = 15;
 var timelineWidth = 800;
-var timelineBarWidth = 5;
+var timelineBarWidth = 20;
 
 var alldomz = document.getElementById('alldomz');
 var canvas = document.getElementById('canvaz');
@@ -24,6 +25,17 @@ var drawTimeline = function(y, ctx, data)
   }
 };
 
+var renderCanvas = function(scrollTop)
+{
+  ctx.clearRect(0, 0, 1000, 1000);
+
+  for (var i = 0; i < data.length; i++) {
+    const y = i * timelineHeight - scrollTop;
+    drawTimeline(y, ctx, data[i]);
+  }
+
+  wait(renderTimeInMs);
+};
 
 var loadTimelines = function()
 {
@@ -33,6 +45,9 @@ var loadTimelines = function()
   {
     data.push(loadTimeline());
   }
+
+  wait(loadTimeInMs);
+
   return data;
 };
 
@@ -43,8 +58,6 @@ var loadTimeline = function()
   {
     data.push(Math.random());
   }
-
-  wait(eachTimelineWaitTimeInMs);
 
   return data;
 };
@@ -62,13 +75,12 @@ var wait = function(ms)
 var data = loadTimelines();
 
 
-var raf = function() {
-  ctx.clearRect(0, 0, 1000, 1000);
+var raf = function()
+{
   var scrollTop = document.getElementById('scroll').scrollTop;
-  for (var i = 0; i < data.length; i++) {
-    const y = i * timelineHeight - scrollTop;
-    drawTimeline(y, ctx, data[i]);
-  }
+
+  renderCanvas(scrollTop);
+
   alldomz.style.top = '-' + scrollTop + 'px';
   requestAnimationFrame(raf);
 };

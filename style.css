@@ -20,18 +20,17 @@ html, body {
 #container {
   border: 1px solid;
   width: 100%;
-  height: 500px;
-  position: absolute;
+  /*height: 500px;*/
+  /*position: absolute;*/
   box-sizing: border-box;
   overflow: hidden;
 }
 
 #scroll {
-  width: 100%;
-  height: 100%;
+  width: 1px;
   box-sizing: border-box;
   position: absolute;
-  overflow: auto;
+  visibility: hidden;
 }
 
 #scroll > div {

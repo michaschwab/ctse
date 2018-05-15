@@ -3,7 +3,7 @@ html, body {
   margin: 0;
 }
 
-.domz {
+.alldomz * {
   background-color: #333;
   width: 100px;
   height: 100px;
@@ -44,8 +44,17 @@ canvas {
   z-index: -2;
 }
 
-#alldomz {
+.alldomz {
   position: absolute;
   border: 1px solid green;
   z-index: -1;
+}
+
+.indicator {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 300px;
+  padding: 20px;
+  background: #eed;
 }

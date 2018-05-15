@@ -1,18 +1,30 @@
-var loadTimeInMs = 50;
-var renderTimeInMs = 10;
+var loadTimePerTimelineInMs = 10;
+var renderTimeInMs = 15;
+var mainThreadWaitTimeInMs = 20;
+
+var canvasSizeFactorComposite = 2;
 
 var MODES = { MAIN_THREAD: 0, COMPOSITE: 100 };
 
 var mode = MODES.COMPOSITE;
 
 var timelineHeight = 110;
-var numberTimelines = 15;
+var numberTimelines = 100;
+var canvasSizeComposite = canvasSizeFactorComposite * window.innerHeight;
 var timelineWidth = 800;
 var timelineBarWidth = 20;
 
 var alldomz = document.getElementById('alldomz');
+//<div class="domz">Dom 1</div>
+for(var i = 1; i <= numberTimelines; i++)
+{
+  var domEl = document.createElement('div');
+  domEl.innerText = 'Dom ' + i;
+  alldomz.appendChild(domEl);
+}
+document.getElementsByClassName('rendering-indicator')[0].innerText = mode === MODES.COMPOSITE ? 'Composite' : 'Main Thread';
 var canvas = document.getElementById('canvaz');
-var canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight : timelineHeight * numberTimelines;
+var canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight : canvasSizeComposite;
 canvas.setAttribute('height', canvasHeight.toString(10));
 var ctx = canvas.getContext('2d');
 var scale = window.devicePixelRatio;
@@ -33,8 +45,6 @@ var setup = function()
 
 var drawTimeline = function(y, ctx, data)
 {
-  //ctx.strokeRect(0, y, timelineWidth, 100);
-  //ctx.fillText('Drawn on canvas', 10, y + timelineHeight / 2 - 5);
   for(var i = 0; i < data.length; i++)
   {
     ctx.fillRect(i * timelineBarWidth, y, timelineBarWidth, data[i]*100);
@@ -45,8 +55,10 @@ var renderCanvas = function(scrollTop)
 {
   ctx.clearRect(0, 0, 1000, canvasHeight);
 
+  var offset = mode === MODES.MAIN_THREAD ? scrollTop : 0;
+
   for (var i = 0; i < data.length; i++) {
-    const y = i * timelineHeight - scrollTop;
+    const y = i * timelineHeight - offset;
     drawTimeline(y, ctx, data[i]);
   }
 
@@ -55,6 +67,8 @@ var renderCanvas = function(scrollTop)
 
 var loadTimelines = function()
 {
+  // In Main Thread mode, this function should always only load the data that is currently visible, or cache some of it.
+  // In Composite mode, this function should return however many fit in the canvas.
   var data = [];
 
   for(var i = 0; i < numberTimelines; i++)
@@ -62,7 +76,7 @@ var loadTimelines = function()
     data.push(loadTimeline());
   }
 
-  wait(loadTimeInMs);
+  wait(loadTimePerTimelineInMs * numberTimelines);
 
   return data;
 };
@@ -93,10 +107,9 @@ var data = loadTimelines();
 
 var raf = function()
 {
-  //console.log(document.documentElement.scrollTop);
-  var scrollTop = document.documentElement.scrollTop;//document.getElementById('scroll').scrollTop;
+  wait(mainThreadWaitTimeInMs);
 
-
+  var scrollTop = document.documentElement.scrollTop;
 
   if(mode === MODES.MAIN_THREAD)
   {
@@ -105,16 +118,10 @@ var raf = function()
   }
   else
   {
-    renderCanvas(0);
+    renderCanvas(scrollTop);
   }
   requestAnimationFrame(raf);
 };
 
 setup();
 requestAnimationFrame(raf);
-
-/*
-window.addEventListener('scroll', function()
-{
-  console.log('scroll');
-})*/

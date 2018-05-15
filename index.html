@@ -1,0 +1,69 @@
+
+<!doctype html>
+<html>
+<title>Skirt + Sync scroll</title>
+<link rel="stylesheet" href="style.css" />
+<body>
+
+<div id="scroll">
+  <!-- The height of this div is set by JS and matches |alldomz|'s height. -->
+</div>
+
+<div id="container">
+
+  <div class="settings">
+
+    <h3>Settings <a href onclick="document.getElementById('help').style.display='block';return false;"><i class="fas fa-info-circle"></i></a></h3>
+
+    Scroll Rendering: <br />
+      <label><input type="radio" name="scrollrenderer" onchange="mode=MODES.MAIN_THREAD;changeRenderMode();" />Main Thread</label>
+      <label><input type="radio" name="scrollrenderer" onchange="mode=MODES.COMPOSITE;changeRenderMode();" checked /> Compositor</label>
+    <br />
+
+    Canvas track render time: <span id="canvasTrackRenderTimeIndicator"></span>ms
+      <div class="slidecontainer">
+        <input type="range" min="0" max="50" class="slider" id="canvasTrackRenderTimeSlider" oninput="renderTimePerTimelineInMs=this.value;document.getElementById('canvasTrackRenderTimeIndicator').innerText = renderTimePerTimelineInMs;" />
+      </div>
+
+    Main thread wait time: <span id="mainThreadWaitTimeIndicator"></span>ms
+    <div class="slidecontainer">
+      <input type="range" min="0" max="500" class="slider" id="mainThreadWaitTimeSlider" oninput="mainThreadWaitTimeInMs=this.value;document.getElementById('mainThreadWaitTimeIndicator').innerText = mainThreadWaitTimeInMs;" />
+    </div>
+
+    Timelines Above/Below View (compositor mode only): <span id="canvasTimelinesBeforeAfterIndicator"></span>
+    <div class="slidecontainer">
+      <input type="range" min="0" max="20" class="slider" id="canvasTimelinesBeforeAfterSlider" oninput="canvasTimelinesBeforeAfter=this.value;document.getElementById('canvasTimelinesBeforeAfterIndicator').innerText = canvasTimelinesBeforeAfter;setCanvasSize();" />
+    </div>
+
+  </div>
+
+  <canvas id="canvaz" width=800></canvas>
+
+  <div id="alldomz" class="alldomz">
+  </div>
+
+</div>
+
+<div class="help" id="help">
+  <h3>Scroll Rendering</h3><a href onclick="document.getElementById('help').style.display='none';return false;" class="close-link"><i class="fas fa-window-close"></i></a>
+  <p>The main thread mode executes scrolling in the main thread and re-renders the canvas for every frame, whereas the compositor mode enables the natural browser scrolling and with a canvas that is larger than the view area.</p>
+
+  <img src="skirt-scroll-help.png" alt="" width="750" />
+
+  <h3>Main Thread Scroll Rendering</h3>
+  <p>In this mode, the screen does not actually move down when the user scrolls, and the scrolling behaviour is executed in the main thread.
+    This is done separately for the DOM elements and the Canvas. For the DOM, it moves the elements up and down using positioning. The canvas is redrawn assuming a new position.</p>
+
+  <h3>Composite Thread Scroll Rendering</h3>
+  <p>By pre-rendering an area of the canvas above and below the viewport, natural browser scrolling can happen on the composite thread, even when the main thread is blocked.
+    When the main thread is available again, the canvas is refreshed to load the data around the current position.</p>
+
+</div>
+
+<script src="main.js"></script>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+
+
+</body>
+
+</html>

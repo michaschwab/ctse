@@ -4,6 +4,9 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
 }
+h3 {
+  margin: 10px 0 10px;
+}
 
 .alldomz * {
   background-color: #333;
@@ -69,12 +72,13 @@ canvas {
   will-change: transform;
   width: 1050px;
   height: 93%;
-  background: #eee;
+  background: #fafafa;
   top: 10px;
   left: 10px;
   border: 1px solid #aaa;
   border-radius: 5px;
   padding: 15px;
+  padding-top: 0;
 }
 
 .close-link {

@@ -1,9 +1,9 @@
 var loadTimePerTimelineInMs = 0;
 var renderTimeInMs = 5;
-var mainThreadWaitTimeInMs = 0;
+var mainThreadWaitTimeInMs = 5;
 var mainThreadWaitSynchronous = true;
 
-var canvasTimelinesBeforeAfter = 0;
+var canvasTimelinesBeforeAfter = 4;
 
 var MODES = { MAIN_THREAD: 0, COMPOSITE: 100 };
 
@@ -19,13 +19,26 @@ var timelineBarWidth = 8;
 // Set some elements and variables
 var alldomz = document.getElementById('alldomz');
 var canvas = document.getElementById('canvaz');
-var canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight : canvasSizeComposite;
-canvas.setAttribute('height', canvasHeight.toString(10));
 var ctx = canvas.getContext('2d');
 var scale = window.devicePixelRatio;
-canvas.style.width = canvas.width / scale + 'px';
-canvas.style.height = canvas.height / scale + 'px';
-ctx.scale(scale, scale);
+
+document.getElementById('canvasRenderTimeIndicator').innerText = renderTimeInMs;
+document.getElementById('mainThreadWaitTimeIndicator').innerText = mainThreadWaitTimeInMs;
+document.getElementById('canvasTimelinesBeforeAfterIndicator').innerText = canvasTimelinesBeforeAfter;
+
+document.getElementById('canvasRenderTimeSlider').value = renderTimeInMs;
+document.getElementById('mainThreadWaitTimeSlider').value = mainThreadWaitTimeInMs;
+document.getElementById('canvasTimelinesBeforeAfterSlider').value = canvasTimelinesBeforeAfter;
+
+var setCanvasSize = function()
+{
+  canvasSizeComposite = window.innerHeight + 2 * canvasTimelinesBeforeAfter * timelineHeight;
+  canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight * scale : canvasSizeComposite * scale;
+  canvas.setAttribute('height', canvasHeight.toString(10));
+  canvas.style.width = canvas.width / scale + 'px';
+  canvas.style.height = canvas.height / scale + 'px';
+  ctx.scale(scale, scale);
+};
 
 // Add the DOM nodes
 for(var i = 1; i <= numberTimelines; i++)
@@ -34,22 +47,23 @@ for(var i = 1; i <= numberTimelines; i++)
   domEl.innerText = 'Dom ' + i;
   alldomz.appendChild(domEl);
 }
-// Add the scroll rendering indicator
-document.getElementsByClassName('rendering-indicator')[0].innerText = mode === MODES.COMPOSITE ? 'Composite' : 'Main Thread';
+document.getElementById('scroll').style.height = alldomz.offsetHeight + 'px';
 
-
-var setup = function()
+var changeRenderMode = function()
 {
   if(mode === MODES.MAIN_THREAD)
   {
-    document.getElementById('scroll').style.height = alldomz.offsetHeight + 'px';
     alldomz.style.position = 'fixed';
     canvas.style.position = 'fixed';
+    canvas.style.top = 0;
   }
   else
   {
-
+    alldomz.style.position = 'absolute';
+    canvas.style.position = 'absolute';
+    alldomz.style.top = 0;
   }
+  setCanvasSize();
 };
 
 var drawTimeline = function(y, ctx, data)
@@ -138,8 +152,7 @@ var raf = function()
   {
     wait(mainThreadWaitTimeInMs);
 
-    window.setTimeout(raf, 10);
-    //requestAnimationFrame(raf);
+    requestAnimationFrame(raf);
   }
   else
   {
@@ -157,7 +170,7 @@ var wait = function(ms)
   }
 };
 
+setCanvasSize();
 var data = loadTimelines();
-setup();
-//requestAnimationFrame(raf);
-raf();
+changeRenderMode();
+requestAnimationFrame(raf);

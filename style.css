@@ -1,6 +1,8 @@
 html, body {
   padding: 0;
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .alldomz * {
@@ -20,6 +22,7 @@ html, body {
 #container {
   border: 1px solid;
   width: 100%;
+  max-width: 100%;
   /*height: 500px;*/
   /*position: absolute;*/
   box-sizing: border-box;
@@ -53,7 +56,7 @@ canvas {
 .settings {
   position: fixed;
   top: 10px;
-  right: 10px;
+  left: 800px;
   width: 300px;
   padding: 20px;
   background: #eed;

@@ -1,5 +1,4 @@
-var loadTimePerTimelineInMs = 0;
-var renderTimeInMs = 5;
+var renderTimePerTimelineInMs = 0;
 var mainThreadWaitTimeInMs = 5;
 var mainThreadWaitSynchronous = true;
 
@@ -20,13 +19,13 @@ var timelineBarWidth = 8;
 var alldomz = document.getElementById('alldomz');
 var canvas = document.getElementById('canvaz');
 var ctx = canvas.getContext('2d');
-var scale = window.devicePixelRatio;
+var scale = 1;//window.devicePixelRatio; // Keep it simple for now
 
-document.getElementById('canvasRenderTimeIndicator').innerText = renderTimeInMs;
+document.getElementById('canvasTrackRenderTimeIndicator').innerText = renderTimePerTimelineInMs;
 document.getElementById('mainThreadWaitTimeIndicator').innerText = mainThreadWaitTimeInMs;
 document.getElementById('canvasTimelinesBeforeAfterIndicator').innerText = canvasTimelinesBeforeAfter;
 
-document.getElementById('canvasRenderTimeSlider').value = renderTimeInMs;
+document.getElementById('canvasTrackRenderTimeSlider').value = renderTimePerTimelineInMs;
 document.getElementById('mainThreadWaitTimeSlider').value = mainThreadWaitTimeInMs;
 document.getElementById('canvasTimelinesBeforeAfterSlider').value = canvasTimelinesBeforeAfter;
 
@@ -34,6 +33,7 @@ var setCanvasSize = function()
 {
   canvasSizeComposite = window.innerHeight + 2 * canvasTimelinesBeforeAfter * timelineHeight;
   canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight * scale : canvasSizeComposite * scale;
+  canvas.setAttribute('width', canvas.width * scale);
   canvas.setAttribute('height', canvasHeight.toString(10));
   canvas.style.width = canvas.width / scale + 'px';
   canvas.style.height = canvas.height / scale + 'px';
@@ -72,6 +72,8 @@ var drawTimeline = function(y, ctx, data)
   {
     ctx.fillRect(i * timelineBarWidth, y, timelineBarWidth, data[i]);
   }
+
+
 };
 
 var renderCanvas = function(scrollTop, startIndex)
@@ -81,20 +83,13 @@ var renderCanvas = function(scrollTop, startIndex)
 
   var offset = mode === MODES.MAIN_THREAD ? scrollTop : 0;
 
-  for (var i = startIndex; i < data.length; i++) {
-    if(i >= 0)
-    {
-      if(i === 0)
-      {
-        //console.log(data[i]);
-      }
-      const y = (i - startIndex) * timelineHeight - offset;
-      drawTimeline(y, ctx, data[i]);
-    }
-
+  for (var i = 0; i < data.length; i++)
+  {
+    const y = (i - startIndex) * timelineHeight - offset;
+    drawTimeline(y, ctx, data[i]);
   }
 
-  wait(renderTimeInMs);
+  wait(renderTimePerTimelineInMs * Math.floor(canvasHeight / timelineHeight));
 };
 
 var loadTimelines = function()
@@ -128,7 +123,7 @@ var raf = function()
   if(mode === MODES.MAIN_THREAD)
   {
     // Load some data
-    wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
+    wait(renderTimePerTimelineInMs * canvasHeight / timelineHeight);
 
     // Adjust DOM position
     alldomz.style.top = '-' + scrollTop + 'px';
@@ -137,7 +132,7 @@ var raf = function()
   else
   {
     // Load some data
-    wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
+    wait(renderTimePerTimelineInMs * canvasHeight / timelineHeight);
 
     var numberOfScrolledTimelines = Math.floor(scrollTop / timelineHeight);
     var scrolledTimelinesHeight = numberOfScrolledTimelines * timelineHeight;

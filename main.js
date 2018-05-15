@@ -1,18 +1,19 @@
 var loadTimePerTimelineInMs = 10;
 var renderTimeInMs = 15;
-var mainThreadWaitTimeInMs = 20;
+var mainThreadWaitTimeInMs = 2000;
 
-var canvasSizeFactorComposite = 2;
+var canvasTimelinesBeforeAfter = 5;
 
 var MODES = { MAIN_THREAD: 0, COMPOSITE: 100 };
 
 var mode = MODES.COMPOSITE;
 
 var timelineHeight = 110;
+var timelineHeightBuffer = 10;
 var numberTimelines = 100;
-var canvasSizeComposite = canvasSizeFactorComposite * window.innerHeight;
+var canvasSizeComposite = window.innerHeight + 2 * canvasTimelinesBeforeAfter * timelineHeight;
 var timelineWidth = 800;
-var timelineBarWidth = 20;
+var timelineBarWidth = 8;
 
 var alldomz = document.getElementById('alldomz');
 //<div class="domz">Dom 1</div>
@@ -41,25 +42,38 @@ var setup = function()
     alldomz.style.position = 'fixed';
     canvas.style.position = 'fixed';
   }
+  else
+  {
+
+  }
 };
 
 var drawTimeline = function(y, ctx, data)
 {
   for(var i = 0; i < data.length; i++)
   {
-    ctx.fillRect(i * timelineBarWidth, y, timelineBarWidth, data[i]*100);
+    ctx.fillRect(i * timelineBarWidth, y, timelineBarWidth, data[i]);
   }
 };
 
-var renderCanvas = function(scrollTop)
+var renderCanvas = function(scrollTop, startIndex)
 {
   ctx.clearRect(0, 0, 1000, canvasHeight);
+  ctx.fillStyle = 'green';
 
   var offset = mode === MODES.MAIN_THREAD ? scrollTop : 0;
 
-  for (var i = 0; i < data.length; i++) {
-    const y = i * timelineHeight - offset;
-    drawTimeline(y, ctx, data[i]);
+  for (var i = startIndex; i < data.length; i++) {
+    if(i >= 0)
+    {
+      if(i === 0)
+      {
+        //console.log(data[i]);
+      }
+      const y = (i - startIndex) * timelineHeight - offset;
+      drawTimeline(y, ctx, data[i]);
+    }
+
   }
 
   wait(renderTimeInMs);
@@ -67,30 +81,61 @@ var renderCanvas = function(scrollTop)
 
 var loadTimelines = function()
 {
-  // In Main Thread mode, this function should always only load the data that is currently visible, or cache some of it.
-  // In Composite mode, this function should return however many fit in the canvas.
   var data = [];
 
   for(var i = 0; i < numberTimelines; i++)
   {
-    data.push(loadTimeline());
+    data.push(loadTimeline(i));
   }
-
-  wait(loadTimePerTimelineInMs * numberTimelines);
 
   return data;
 };
 
-var loadTimeline = function()
+var loadTimeline = function(number)
 {
   var data = [];
   for(var i = 0; i < timelineWidth / timelineBarWidth; i++)
   {
-    data.push(Math.random());
+    i <= number ? data.push(timelineHeight - i - timelineHeightBuffer) : data.push(timelineHeight - timelineHeightBuffer);
   }
 
   return data;
 };
+
+
+var raf = function()
+{
+  //wait(mainThreadWaitTimeInMs);
+
+  var scrollTop = document.documentElement.scrollTop;
+
+  if(mode === MODES.MAIN_THREAD)
+  {
+    // Load some data
+    wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
+
+    alldomz.style.top = '-' + scrollTop + 'px';
+    renderCanvas(scrollTop, 0);
+  }
+  else
+  {
+    // Load some data
+    //wait(loadTimePerTimelineInMs * numberTimelines);
+    wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
+
+    var numberOfScrolledTimelines = Math.floor(scrollTop / timelineHeight);
+    var scrolledTimelinesHeight = numberOfScrolledTimelines * timelineHeight;
+
+    renderCanvas(scrolledTimelinesHeight, numberOfScrolledTimelines - canvasTimelinesBeforeAfter);
+
+    // Adjust position
+    canvas.style.top = scrolledTimelinesHeight - canvasTimelinesBeforeAfter * timelineHeight + 'px';
+  }
+
+  window.setTimeout(raf, mainThreadWaitTimeInMs);
+  //requestAnimationFrame(raf);
+};
+
 
 var wait = function(ms)
 {
@@ -101,27 +146,6 @@ var wait = function(ms)
   }
 };
 
-
 var data = loadTimelines();
-
-
-var raf = function()
-{
-  wait(mainThreadWaitTimeInMs);
-
-  var scrollTop = document.documentElement.scrollTop;
-
-  if(mode === MODES.MAIN_THREAD)
-  {
-    alldomz.style.top = '-' + scrollTop + 'px';
-    renderCanvas(scrollTop);
-  }
-  else
-  {
-    renderCanvas(scrollTop);
-  }
-  requestAnimationFrame(raf);
-};
-
 setup();
 requestAnimationFrame(raf);

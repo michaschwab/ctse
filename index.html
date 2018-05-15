@@ -22,7 +22,7 @@
 
     Canvas track render time: <span id="canvasTrackRenderTimeIndicator"></span>ms
       <div class="slidecontainer">
-        <input type="range" min="0" max="50" class="slider" id="canvasTrackRenderTimeSlider" oninput="renderTimePerTimelineInMs=this.value;document.getElementById('canvasTrackRenderTimeIndicator').innerText = renderTimePerTimelineInMs;" />
+        <input type="range" min="0" max="5" step="0.1" class="slider" id="canvasTrackRenderTimeSlider" oninput="renderTimePerTimelineInMs=this.value;document.getElementById('canvasTrackRenderTimeIndicator').innerText = renderTimePerTimelineInMs;" />
       </div>
 
     Main thread wait time: <span id="mainThreadWaitTimeIndicator"></span>ms

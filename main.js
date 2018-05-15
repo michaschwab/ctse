@@ -1,8 +1,9 @@
-var loadTimePerTimelineInMs = 10;
-var renderTimeInMs = 15;
-var mainThreadWaitTimeInMs = 2000;
+var loadTimePerTimelineInMs = 0;
+var renderTimeInMs = 5;
+var mainThreadWaitTimeInMs = 0;
+var mainThreadWaitSynchronous = true;
 
-var canvasTimelinesBeforeAfter = 5;
+var canvasTimelinesBeforeAfter = 0;
 
 var MODES = { MAIN_THREAD: 0, COMPOSITE: 100 };
 
@@ -15,24 +16,27 @@ var canvasSizeComposite = window.innerHeight + 2 * canvasTimelinesBeforeAfter * 
 var timelineWidth = 800;
 var timelineBarWidth = 8;
 
+// Set some elements and variables
 var alldomz = document.getElementById('alldomz');
-//<div class="domz">Dom 1</div>
+var canvas = document.getElementById('canvaz');
+var canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight : canvasSizeComposite;
+canvas.setAttribute('height', canvasHeight.toString(10));
+var ctx = canvas.getContext('2d');
+var scale = window.devicePixelRatio;
+canvas.style.width = canvas.width / scale + 'px';
+canvas.style.height = canvas.height / scale + 'px';
+ctx.scale(scale, scale);
+
+// Add the DOM nodes
 for(var i = 1; i <= numberTimelines; i++)
 {
   var domEl = document.createElement('div');
   domEl.innerText = 'Dom ' + i;
   alldomz.appendChild(domEl);
 }
+// Add the scroll rendering indicator
 document.getElementsByClassName('rendering-indicator')[0].innerText = mode === MODES.COMPOSITE ? 'Composite' : 'Main Thread';
-var canvas = document.getElementById('canvaz');
-var canvasHeight = mode === MODES.MAIN_THREAD ? window.innerHeight : canvasSizeComposite;
-canvas.setAttribute('height', canvasHeight.toString(10));
-var ctx = canvas.getContext('2d');
-var scale = window.devicePixelRatio;
-//
-canvas.style.width = canvas.width / scale + 'px';
-canvas.style.height = canvas.height / scale + 'px';
-ctx.scale(scale, scale);
+
 
 var setup = function()
 {
@@ -105,8 +109,6 @@ var loadTimeline = function(number)
 
 var raf = function()
 {
-  //wait(mainThreadWaitTimeInMs);
-
   var scrollTop = document.documentElement.scrollTop;
 
   if(mode === MODES.MAIN_THREAD)
@@ -114,13 +116,13 @@ var raf = function()
     // Load some data
     wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
 
+    // Adjust DOM position
     alldomz.style.top = '-' + scrollTop + 'px';
     renderCanvas(scrollTop, 0);
   }
   else
   {
     // Load some data
-    //wait(loadTimePerTimelineInMs * numberTimelines);
     wait(loadTimePerTimelineInMs * canvasHeight / timelineHeight);
 
     var numberOfScrolledTimelines = Math.floor(scrollTop / timelineHeight);
@@ -128,12 +130,21 @@ var raf = function()
 
     renderCanvas(scrolledTimelinesHeight, numberOfScrolledTimelines - canvasTimelinesBeforeAfter);
 
-    // Adjust position
+    // Adjust canvas position
     canvas.style.top = scrolledTimelinesHeight - canvasTimelinesBeforeAfter * timelineHeight + 'px';
   }
 
-  window.setTimeout(raf, mainThreadWaitTimeInMs);
-  //requestAnimationFrame(raf);
+  if(mainThreadWaitSynchronous)
+  {
+    wait(mainThreadWaitTimeInMs);
+
+    window.setTimeout(raf, 10);
+    //requestAnimationFrame(raf);
+  }
+  else
+  {
+    window.setTimeout(raf, mainThreadWaitTimeInMs);
+  }
 };
 
 
@@ -148,4 +159,5 @@ var wait = function(ms)
 
 var data = loadTimelines();
 setup();
-requestAnimationFrame(raf);
+//requestAnimationFrame(raf);
+raf();

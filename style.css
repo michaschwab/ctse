@@ -57,4 +57,5 @@ canvas {
   width: 300px;
   padding: 20px;
   background: #eed;
+  will-change: transform;
 }
